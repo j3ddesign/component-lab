@@ -6,12 +6,28 @@ const ProgressPlugin = require('webpack/lib/ProgressPlugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const path = require('path');
 
+export interface DevServerConfig {
+  port?: number;
+  proxy?: any;
+  host?: string;
+  quiet?: boolean;
+  noInfo?: boolean;
+  watchOptions?: any;
+  https?: boolean | {key: any; cert: any; };
+}
+
 
 export function startServer(config: ComponentLabConfig, suite: string) {
-  const webpackConfig = config.webpackConfig;
-  const https = !!webpackConfig.devServer.https;
-  const host = webpackConfig.devServer?.host || config.host || "localhost";
-  const port = webpackConfig.devServer?.port || config.port || 8080;
+  const webpackConfig: any = config.webpackConfig;
+  const devServerConfig: DevServerConfig = webpackConfig.devServer;
+  let https = false,
+    host = config.host || "localhost",
+    port = config.port || 8080;
+  if (devServerConfig) {
+    https = !!devServerConfig.https;
+    host = devServerConfig.host || host;
+    port = devServerConfig.port || port;
+  }
   const includes = config.include || [];
 
   webpackConfig.entry = {
@@ -47,7 +63,7 @@ export function startServer(config: ComponentLabConfig, suite: string) {
       chunkModules: false  
     },
     inline: true
-  }, webpackConfig.devServer);
+  }, devServerConfig);
 
   const server = new WebpackDevServer(compiler, serverConfig);
 
